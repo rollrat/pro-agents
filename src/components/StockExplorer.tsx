@@ -9,7 +9,7 @@ export default function StockExplorer() {
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
 
   useEffect(() => {
-    fetch('/data/kospi-stocks.json')
+    fetch(`${import.meta.env.BASE_URL}data/kospi-stocks.json`)
       .then((r) => r.json())
       .then((d: StockData) => {
         setData(d);
