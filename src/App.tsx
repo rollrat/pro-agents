@@ -1,11 +1,12 @@
-import { Sun, Moon, BarChart3, BookOpen } from 'lucide-react';
+import { Sun, Moon, BarChart3, BookOpen, Cpu } from 'lucide-react';
 import { useState } from 'react';
 import StockExplorer from './components/StockExplorer';
 import IndicatorsGuide from './components/IndicatorsGuide';
+import StockAnalysis from './components/StockAnalysis';
 import { useTheme } from './hooks/useTheme';
 import { ThemeContext } from './context/ThemeContext';
 
-type Tab = 'stocks' | 'indicators';
+type Tab = 'stocks' | 'indicators' | 'analysis';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('stocks');
@@ -44,6 +45,17 @@ export default function App() {
                   <BookOpen size={16} />
                   기술적 지표
                 </button>
+                <button
+                  onClick={() => setTab('analysis')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all cursor-pointer ${
+                    tab === 'analysis'
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <Cpu size={16} />
+                  종목 분석
+                </button>
               </nav>
               <button
                 onClick={toggle}
@@ -58,7 +70,7 @@ export default function App() {
 
         {/* Content */}
         <main className="mx-auto max-w-7xl px-4 py-6">
-          {tab === 'stocks' ? <StockExplorer /> : <IndicatorsGuide />}
+          {tab === 'stocks' ? <StockExplorer /> : tab === 'indicators' ? <IndicatorsGuide /> : <StockAnalysis />}
         </main>
       </div>
     </ThemeContext.Provider>
