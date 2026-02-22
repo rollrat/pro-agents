@@ -13,7 +13,6 @@ export default function StockExplorer() {
       .then((r) => r.json())
       .then((d: StockData) => {
         setData(d);
-        // 처음 3개 섹터 열기
         const keys = Object.keys(d.sectors).slice(0, 3);
         setExpandedSectors(new Set(keys));
       });
@@ -65,12 +64,12 @@ export default function StockExplorer() {
           placeholder="종목명 또는 코드로 검색 (예: 삼성전자, 005930)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-gray-800 rounded-xl text-gray-100 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+          className="w-full pl-12 pr-4 py-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 cursor-pointer"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -89,20 +88,20 @@ export default function StockExplorer() {
         {sectorEntries.map(([sector, stocks]) => {
           const isExpanded = expandedSectors.has(sector) || search.trim().length > 0;
           return (
-            <div key={sector} className="border border-gray-800 rounded-xl overflow-hidden bg-gray-900/50">
+            <div key={sector} className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900/50">
               {/* Sector header */}
               <button
                 onClick={() => toggleSector(sector)}
-                className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   {isExpanded ? (
-                    <ChevronDown size={18} className="text-blue-400" />
+                    <ChevronDown size={18} className="text-blue-500 dark:text-blue-400" />
                   ) : (
-                    <ChevronRight size={18} className="text-gray-600" />
+                    <ChevronRight size={18} className="text-gray-400 dark:text-gray-600" />
                   )}
-                  <span className="font-semibold text-gray-200">{sector}</span>
-                  <span className="text-xs text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">{sector}</span>
+                  <span className="text-xs text-gray-500 bg-gray-200 dark:bg-gray-800 px-2 py-0.5 rounded-full">
                     {stocks.length}
                   </span>
                 </div>
@@ -110,8 +109,8 @@ export default function StockExplorer() {
 
               {/* Stock list */}
               {isExpanded && (
-                <div className="border-t border-gray-800">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-800">
+                <div className="border-t border-gray-200 dark:border-gray-800">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-200 dark:bg-gray-800">
                     {stocks.map((stock) => {
                       const rate = parseFloat(stock.changeRate);
                       const isUp = rate > 0;
@@ -120,17 +119,17 @@ export default function StockExplorer() {
                         <button
                           key={stock.code}
                           onClick={() => setSelectedStock(stock)}
-                          className="flex items-center justify-between px-4 py-3 bg-gray-900 hover:bg-gray-800 transition-colors cursor-pointer text-left"
+                          className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer text-left"
                         >
                           <div>
-                            <div className="font-medium text-gray-200 text-sm">{stock.name}</div>
-                            <div className="text-xs text-gray-600">{stock.code}</div>
+                            <div className="font-medium text-gray-800 dark:text-gray-200 text-sm">{stock.name}</div>
+                            <div className="text-xs text-gray-400 dark:text-gray-600">{stock.code}</div>
                           </div>
                           <div className="text-right">
-                            <div className="font-mono text-sm text-gray-200">{stock.close}원</div>
+                            <div className="font-mono text-sm text-gray-800 dark:text-gray-200">{stock.close}원</div>
                             <div
                               className={`flex items-center gap-1 text-xs font-mono ${
-                                isUp ? 'text-red-400' : isDown ? 'text-blue-400' : 'text-gray-500'
+                                isUp ? 'text-red-500 dark:text-red-400' : isDown ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500'
                               }`}
                             >
                               {isUp ? <TrendingUp size={12} /> : isDown ? <TrendingDown size={12} /> : null}
@@ -149,7 +148,7 @@ export default function StockExplorer() {
       </div>
 
       {sectorEntries.length === 0 && (
-        <div className="text-center text-gray-600 py-16">
+        <div className="text-center text-gray-500 py-16">
           검색 결과가 없습니다
         </div>
       )}
@@ -161,17 +160,17 @@ export default function StockExplorer() {
           onClick={() => setSelectedStock(null)}
         >
           <div
-            className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-100">{selectedStock.name}</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{selectedStock.name}</h2>
                 <p className="text-sm text-gray-500">{selectedStock.code} · KOSPI</p>
               </div>
               <button
                 onClick={() => setSelectedStock(null)}
-                className="text-gray-500 hover:text-gray-300 cursor-pointer"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -180,7 +179,7 @@ export default function StockExplorer() {
             <div className="space-y-3">
               <div className="flex justify-between items-baseline">
                 <span className="text-gray-500 text-sm">종가</span>
-                <span className="text-2xl font-bold font-mono text-gray-100">
+                <span className="text-2xl font-bold font-mono text-gray-900 dark:text-gray-100">
                   {selectedStock.close}원
                 </span>
               </div>
@@ -194,7 +193,7 @@ export default function StockExplorer() {
                     <span className="text-gray-500 text-sm">전일 대비</span>
                     <span
                       className={`text-lg font-mono font-semibold ${
-                        isUp ? 'text-red-400' : isDown ? 'text-blue-400' : 'text-gray-500'
+                        isUp ? 'text-red-500 dark:text-red-400' : isDown ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500'
                       }`}
                     >
                       {isUp ? '+' : ''}{selectedStock.change} ({isUp ? '+' : ''}{selectedStock.changeRate}%)
@@ -203,14 +202,14 @@ export default function StockExplorer() {
                 );
               })()}
 
-              <div className="border-t border-gray-800 pt-3 space-y-2">
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">거래량</span>
-                  <span className="font-mono text-gray-300">{selectedStock.volume}</span>
+                  <span className="font-mono text-gray-700 dark:text-gray-300">{selectedStock.volume}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">섹터</span>
-                  <span className="text-gray-300">{selectedStock.sector}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{selectedStock.sector}</span>
                 </div>
               </div>
             </div>

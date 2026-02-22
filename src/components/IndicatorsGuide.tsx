@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, ReferenceLine, Area, AreaChart,
   ComposedChart, Bar, Legend,
 } from 'recharts';
+import { useThemeContext } from '../context/ThemeContext';
 
 // --- 시뮬레이션 데이터 생성 ---
 
@@ -80,6 +81,16 @@ function calcBollinger(data: { day: number; price: number }[], period = 20, mult
 const basePriceData = generatePriceData(100, 50000, 800);
 const prices = basePriceData.map((d) => d.price);
 
+// --- 차트 색상 타입 ---
+
+interface ChartColors {
+  grid: string;
+  axis: string;
+  tooltipBg: string;
+  tooltipBorder: string;
+  price: string;
+}
+
 // --- 지표 정의 ---
 
 interface Indicator {
@@ -90,7 +101,7 @@ interface Indicator {
   summary: string;
   description: string[];
   interpretation: string[];
-  chart: () => React.ReactNode;
+  chart: (colors: ChartColors) => React.ReactNode;
 }
 
 const indicators: Indicator[] = [
@@ -111,7 +122,7 @@ const indicators: Indicator[] = [
       '주가가 이동평균선 아래에 있으면 하락 추세',
       '이동평균선이 수렴하면 큰 움직임이 올 수 있음',
     ],
-    chart: () => {
+    chart: (colors) => {
       let merged = basePriceData.map((d) => ({ ...d }));
       const ma5data = calcMA(basePriceData, 5);
       const ma20data = calcMA(basePriceData, 20);
@@ -125,15 +136,15 @@ const indicators: Indicator[] = [
       return (
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={merged} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-            <XAxis dataKey="day" stroke="#6b7280" tick={{ fontSize: 11 }} />
-            <YAxis domain={['auto', 'auto']} stroke="#6b7280" tick={{ fontSize: 11 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+            <XAxis dataKey="day" stroke={colors.axis} tick={{ fontSize: 11 }} />
+            <YAxis domain={['auto', 'auto']} stroke={colors.axis} tick={{ fontSize: 11 }} />
             <Tooltip
-              contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8 }}
-              labelStyle={{ color: '#9ca3af' }}
+              contentStyle={{ backgroundColor: colors.tooltipBg, border: `1px solid ${colors.tooltipBorder}`, borderRadius: 8 }}
+              labelStyle={{ color: colors.axis }}
             />
             <Legend />
-            <Line type="monotone" dataKey="price" stroke="#6b7280" dot={false} strokeWidth={1} name="주가" />
+            <Line type="monotone" dataKey="price" stroke={colors.price} dot={false} strokeWidth={1} name="주가" />
             <Line type="monotone" dataKey="ma5" stroke="#f59e0b" dot={false} strokeWidth={2} name="MA5" connectNulls />
             <Line type="monotone" dataKey="ma20" stroke="#3b82f6" dot={false} strokeWidth={2} name="MA20" connectNulls />
             <Line type="monotone" dataKey="ma60" stroke="#ef4444" dot={false} strokeWidth={2} name="MA60" connectNulls />
@@ -160,7 +171,7 @@ const indicators: Indicator[] = [
       'Histogram이 0선 위에서 커지면 상승 모멘텀 강화',
       '다이버전스: 가격은 신고가인데 MACD가 안 따라가면 추세 약화 신호',
     ],
-    chart: () => {
+    chart: (colors) => {
       const ema12 = calcEMA(prices, 12);
       const ema26 = calcEMA(prices, 26);
       const macdLine = ema12.map((v, i) =>
@@ -183,25 +194,27 @@ const indicators: Indicator[] = [
           ? macdLine[i]! - signal[i]! : null,
       }));
 
+      const tooltipStyle = { backgroundColor: colors.tooltipBg, border: `1px solid ${colors.tooltipBorder}`, borderRadius: 8 };
+
       return (
         <div className="space-y-2">
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="day" stroke="#6b7280" tick={{ fontSize: 11 }} />
-              <YAxis domain={['auto', 'auto']} stroke="#6b7280" tick={{ fontSize: 11 }} />
-              <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8 }} />
-              <Line type="monotone" dataKey="price" stroke="#6b7280" dot={false} strokeWidth={1} name="주가" />
+              <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+              <XAxis dataKey="day" stroke={colors.axis} tick={{ fontSize: 11 }} />
+              <YAxis domain={['auto', 'auto']} stroke={colors.axis} tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Line type="monotone" dataKey="price" stroke={colors.price} dot={false} strokeWidth={1} name="주가" />
             </LineChart>
           </ResponsiveContainer>
           <ResponsiveContainer width="100%" height={180}>
             <ComposedChart data={chartData} margin={{ top: 0, right: 10, bottom: 10, left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="day" stroke="#6b7280" tick={{ fontSize: 11 }} />
-              <YAxis stroke="#6b7280" tick={{ fontSize: 11 }} />
-              <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+              <XAxis dataKey="day" stroke={colors.axis} tick={{ fontSize: 11 }} />
+              <YAxis stroke={colors.axis} tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={tooltipStyle} />
               <Legend />
-              <ReferenceLine y={0} stroke="#374151" />
+              <ReferenceLine y={0} stroke={colors.tooltipBorder} />
               <Bar dataKey="histogram" name="Histogram" fill="#3b82f6" opacity={0.6} />
               <Line type="monotone" dataKey="macd" stroke="#f59e0b" dot={false} strokeWidth={2} name="MACD" connectNulls />
               <Line type="monotone" dataKey="signal" stroke="#ef4444" dot={false} strokeWidth={2} name="Signal" connectNulls />
@@ -228,33 +241,34 @@ const indicators: Indicator[] = [
       'RSI 50 돌파: 추세 전환 시그널',
       '다이버전스: 가격과 RSI 방향이 다르면 추세 전환 임박',
     ],
-    chart: () => {
+    chart: (colors) => {
       const rsi = calcRSI(prices, 14);
       const chartData = basePriceData.map((d, i) => ({
         day: d.day,
         price: d.price,
         rsi: rsi[i],
       }));
+      const tooltipStyle = { backgroundColor: colors.tooltipBg, border: `1px solid ${colors.tooltipBorder}`, borderRadius: 8 };
       return (
         <div className="space-y-2">
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 10, right: 10, bottom: 0, left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="day" stroke="#6b7280" tick={{ fontSize: 11 }} />
-              <YAxis domain={['auto', 'auto']} stroke="#6b7280" tick={{ fontSize: 11 }} />
-              <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8 }} />
-              <Line type="monotone" dataKey="price" stroke="#6b7280" dot={false} strokeWidth={1} name="주가" />
+              <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+              <XAxis dataKey="day" stroke={colors.axis} tick={{ fontSize: 11 }} />
+              <YAxis domain={['auto', 'auto']} stroke={colors.axis} tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Line type="monotone" dataKey="price" stroke={colors.price} dot={false} strokeWidth={1} name="주가" />
             </LineChart>
           </ResponsiveContainer>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={chartData} margin={{ top: 0, right: 10, bottom: 10, left: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="day" stroke="#6b7280" tick={{ fontSize: 11 }} />
-              <YAxis domain={[0, 100]} stroke="#6b7280" tick={{ fontSize: 11 }} />
-              <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+              <XAxis dataKey="day" stroke={colors.axis} tick={{ fontSize: 11 }} />
+              <YAxis domain={[0, 100]} stroke={colors.axis} tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={tooltipStyle} />
               <ReferenceLine y={70} stroke="#ef4444" strokeDasharray="5 5" label={{ value: '과매수 70', position: 'right', fill: '#ef4444', fontSize: 11 }} />
               <ReferenceLine y={30} stroke="#3b82f6" strokeDasharray="5 5" label={{ value: '과매도 30', position: 'right', fill: '#3b82f6', fontSize: 11 }} />
-              <ReferenceLine y={50} stroke="#374151" />
+              <ReferenceLine y={50} stroke={colors.tooltipBorder} />
               <Line type="monotone" dataKey="rsi" stroke="#a855f7" dot={false} strokeWidth={2} name="RSI" connectNulls />
             </LineChart>
           </ResponsiveContainer>
@@ -280,15 +294,15 @@ const indicators: Indicator[] = [
       '밴드 폭이 넓어지면 → 변동성 확대 구간',
       '주가가 밴드 바깥으로 나가면 추세가 강하다는 의미일 수도 있음',
     ],
-    chart: () => {
+    chart: (colors) => {
       const bollinger = calcBollinger(basePriceData, 20, 2);
       return (
         <ResponsiveContainer width="100%" height={350}>
           <AreaChart data={bollinger} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-            <XAxis dataKey="day" stroke="#6b7280" tick={{ fontSize: 11 }} />
-            <YAxis domain={['auto', 'auto']} stroke="#6b7280" tick={{ fontSize: 11 }} />
-            <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+            <XAxis dataKey="day" stroke={colors.axis} tick={{ fontSize: 11 }} />
+            <YAxis domain={['auto', 'auto']} stroke={colors.axis} tick={{ fontSize: 11 }} />
+            <Tooltip contentStyle={{ backgroundColor: colors.tooltipBg, border: `1px solid ${colors.tooltipBorder}`, borderRadius: 8 }} />
             <Legend />
             <Area type="monotone" dataKey="upper" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.05} strokeWidth={1} name="상단밴드" connectNulls />
             <Area type="monotone" dataKey="lower" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.05} strokeWidth={1} name="하단밴드" connectNulls />
@@ -317,52 +331,43 @@ const indicators: Indicator[] = [
       '4파는 1파의 고점 아래로 내려가지 않음',
       'A-B-C 조정 이후 새로운 상승 사이클 시작 가능',
     ],
-    chart: () => {
-      // 엘리어트 파동 시뮬레이션 데이터
+    chart: (colors) => {
       const wave = [
-        // 1파 상승
         ...Array.from({ length: 12 }, (_, i) => ({
           day: i + 1,
           price: 45000 + i * 500 + Math.random() * 200,
           label: i === 0 ? '시작' : i === 11 ? '1파' : '',
         })),
-        // 2파 조정
         ...Array.from({ length: 7 }, (_, i) => ({
           day: 13 + i,
           price: 51000 - i * 400 + Math.random() * 200,
           label: i === 6 ? '2파' : '',
         })),
-        // 3파 상승 (가장 강함)
         ...Array.from({ length: 18 }, (_, i) => ({
           day: 20 + i,
           price: 48200 + i * 600 + Math.random() * 300,
           label: i === 17 ? '3파' : '',
         })),
-        // 4파 조정
         ...Array.from({ length: 8 }, (_, i) => ({
           day: 38 + i,
           price: 59000 - i * 350 + Math.random() * 200,
           label: i === 7 ? '4파' : '',
         })),
-        // 5파 상승
         ...Array.from({ length: 10 }, (_, i) => ({
           day: 46 + i,
           price: 56200 + i * 450 + Math.random() * 250,
           label: i === 9 ? '5파' : '',
         })),
-        // A파 하락
         ...Array.from({ length: 8 }, (_, i) => ({
           day: 56 + i,
           price: 60700 - i * 500 + Math.random() * 200,
           label: i === 7 ? 'A파' : '',
         })),
-        // B파 반등
         ...Array.from({ length: 6 }, (_, i) => ({
           day: 64 + i,
           price: 56700 + i * 350 + Math.random() * 200,
           label: i === 5 ? 'B파' : '',
         })),
-        // C파 하락
         ...Array.from({ length: 10 }, (_, i) => ({
           day: 70 + i,
           price: 58800 - i * 500 + Math.random() * 200,
@@ -384,10 +389,10 @@ const indicators: Indicator[] = [
       return (
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={wave} margin={{ top: 25, right: 10, bottom: 10, left: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-            <XAxis dataKey="day" stroke="#6b7280" tick={{ fontSize: 11 }} />
-            <YAxis domain={['auto', 'auto']} stroke="#6b7280" tick={{ fontSize: 11 }} />
-            <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
+            <XAxis dataKey="day" stroke={colors.axis} tick={{ fontSize: 11 }} />
+            <YAxis domain={['auto', 'auto']} stroke={colors.axis} tick={{ fontSize: 11 }} />
+            <Tooltip contentStyle={{ backgroundColor: colors.tooltipBg, border: `1px solid ${colors.tooltipBorder}`, borderRadius: 8 }} />
             <Line
               type="monotone"
               dataKey="price"
@@ -409,8 +414,13 @@ const indicators: Indicator[] = [
 export default function IndicatorsGuide() {
   const [activeId, setActiveId] = useState(indicators[0].id);
   const active = indicators.find((i) => i.id === activeId)!;
+  const { theme } = useThemeContext();
 
   const categories = [...new Set(indicators.map((i) => i.category))];
+
+  const chartColors: ChartColors = theme === 'dark'
+    ? { grid: '#1f2937', axis: '#6b7280', tooltipBg: '#111827', tooltipBorder: '#374151', price: '#6b7280' }
+    : { grid: '#e5e7eb', axis: '#9ca3af', tooltipBg: '#ffffff', tooltipBorder: '#d1d5db', price: '#9ca3af' };
 
   return (
     <div className="flex flex-col lg:flex-row gap-6">
@@ -431,8 +441,8 @@ export default function IndicatorsGuide() {
                       onClick={() => setActiveId(ind.id)}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all cursor-pointer ${
                         activeId === ind.id
-                          ? 'bg-blue-600/20 text-blue-400 font-medium'
-                          : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                          ? 'bg-blue-600/20 text-blue-500 dark:text-blue-400 font-medium'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50'
                       }`}
                     >
                       {ind.name}
@@ -449,24 +459,24 @@ export default function IndicatorsGuide() {
         <div className="space-y-6">
           {/* Title */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-100">{active.name}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{active.name}</h2>
             <p className="text-sm text-gray-500 mt-1">{active.nameEn}</p>
-            <p className="text-gray-300 mt-3 leading-relaxed">{active.summary}</p>
+            <p className="text-gray-700 dark:text-gray-300 mt-3 leading-relaxed">{active.summary}</p>
           </div>
 
           {/* Chart */}
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
             <div className="text-xs text-gray-500 mb-3 uppercase tracking-wider">시각화 (시뮬레이션 데이터)</div>
-            {active.chart()}
+            {active.chart(chartColors)}
           </div>
 
           {/* Description */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-3">개념 설명</h3>
+          <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">개념 설명</h3>
             <ul className="space-y-2">
               {active.description.map((d, i) => (
-                <li key={i} className="flex gap-2 text-sm text-gray-400 leading-relaxed">
-                  <span className="text-blue-400 mt-0.5 shrink-0">•</span>
+                <li key={i} className="flex gap-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <span className="text-blue-500 dark:text-blue-400 mt-0.5 shrink-0">•</span>
                   {d}
                 </li>
               ))}
@@ -474,12 +484,12 @@ export default function IndicatorsGuide() {
           </div>
 
           {/* Interpretation */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-gray-300 mb-3">해석 방법</h3>
+          <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">해석 방법</h3>
             <ul className="space-y-2">
               {active.interpretation.map((d, i) => (
-                <li key={i} className="flex gap-2 text-sm text-gray-400 leading-relaxed">
-                  <span className="text-emerald-400 mt-0.5 shrink-0">→</span>
+                <li key={i} className="flex gap-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <span className="text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0">→</span>
                   {d}
                 </li>
               ))}
